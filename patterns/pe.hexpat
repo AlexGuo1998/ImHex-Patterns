@@ -428,9 +428,19 @@ struct ImportsAddress {
 };
 
 struct ImportsLookup : ImportsAddress {
-	if (!ordinalFlagByte.flag && std::mem::read_unsigned($-wordsize(), wordsize()) > 0) {
+	bool _hasName = !ordinalFlagByte.flag && std::mem::read_unsigned($-wordsize(), wordsize()) > 0 [[export, hidden]];
+	if (_hasName) {
 		ImportsName name @ nameTableRVA - relativeVirtualDifference();
 	}
+} [[name(formatImportsLookup(this))]];
+
+fn formatImportsLookup(ref ImportsLookup block) {
+	if (block._hasName) {
+		return std::format("[\"{}\"]", block.name.name);
+	} else if (block.ordinalFlagByte.flag) {
+		return std::format("[#{}]", block.ordinalNumber);
+	}
+	return "[???]";
 };
 
 struct ImportsDirectory {
